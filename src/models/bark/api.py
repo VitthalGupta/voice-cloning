@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Optional
 
 import numpy as np
 
@@ -7,7 +7,7 @@ from .generation import codec_decode, generate_coarse, generate_fine, generate_t
 
 def text_to_semantic(
     text: str,
-    history_prompt: Optional[Union[Dict, str]] = None,
+    history_prompt: Optional[str] = None,
     temp: float = 0.7,
     silent: bool = False,
 ):
@@ -34,7 +34,7 @@ def text_to_semantic(
 
 def semantic_to_waveform(
     semantic_tokens: np.ndarray,
-    history_prompt: Optional[Union[Dict, str]] = None,
+    history_prompt: Optional[str] = None,
     temp: float = 0.7,
     silent: bool = False,
     output_full: bool = False,
@@ -85,7 +85,7 @@ def save_as_prompt(filepath, full_generation):
 
 def generate_audio(
     text: str,
-    history_prompt: Optional[Union[Dict, str]] = None,
+    history_prompt: Optional[str] = None,
     text_temp: float = 0.7,
     waveform_temp: float = 0.7,
     silent: bool = False,

@@ -2,13 +2,14 @@
 Much of this code is adapted from Andrej Karpathy's NanoGPT
 (https://github.com/karpathy/nanoGPT)
 """
-
 import math
 from dataclasses import dataclass
 
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+from einops import rearrange, repeat, reduce
+
 
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
@@ -166,7 +167,7 @@ class GPT(nn.Module):
             n_params -= self.transformer.wpe.weight.numel()
         return n_params
 
-    def forward(self, idx, merge_context=False, past_kv=None, position_ids=None, use_cache=False):
+    def forward(self, idx, merge_context=False, past_kv=None, position_ids=None, use_cache=False, training=False):
         device = idx.device
         b, t = idx.size()
         if past_kv is not None:
@@ -212,6 +213,11 @@ class GPT(nn.Module):
                 new_kv = new_kv + (kv,)
 
         x = self.transformer.ln_f(x)
+
+        
+        if training:
+            logits = self.lm_head(x)
+            return logits
 
         # inference-time mini-optimization: only forward the lm_head on the very last position
         logits = self.lm_head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim

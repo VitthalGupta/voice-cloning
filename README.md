@@ -8,7 +8,6 @@ Sourcing voice from youtube videos and making clones.
 
 Project Organization
 
-'''
 ------------
 
     ├── LICENSE
@@ -57,6 +56,5 @@ Project Organization
     └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
 
 --------
-'''
 
 [END]
