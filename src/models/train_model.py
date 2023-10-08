@@ -13,6 +13,21 @@ import os
 from tqdm import tqdm
 from scipy.io.wavfile import write as write_wav
 
+parent_dir = '/data'
+
+# Create folders if they don't exist
+folder_names = ["external", "processed", "models", "interim", "raw"]
+
+for folder_name in folder_names:
+    folder_path = os.path.join(parent_dir, folder_name)
+    try:
+        os.makedirs(folder_path)
+        print(f"Created folder: {folder_path}")
+    except FileExistsError:
+        pass
+    except Exception as e:
+        print(f"Error creating folder {folder_path}: {str(e)}")
+
 device = 'cpu'  # or 'cuda' if you have a GPU
 model = load_codec_model(use_gpu=True if device == 'cuda' else False)
 
@@ -61,9 +76,13 @@ def process_audio(input_path, voice_name):
     np.savez(output_path, fine_prompt=codes, coarse_prompt=codes[:2, :]
     , semantic_prompt=semantic_tokens)
 
+    # Copy the npz file to the src/models/bark/assets folder
+    os.system(f"cp {output_path} src/models/bark/assets/{voice_name}.npz")
+
     return output_path, f"Voice prompt for {voice_name} generated successfully."
 
-def generate_voice(text, voice_name):
+
+def generate_voice(text, voice_name, input_slider_generate_voice_gen_temp, input_slider_generate_voice_min_eos_p, input_slider_generate_voice_gen_temp_semantic2wave):
     # Local variable declaration
     # set to None if you don't want to use finetuned semantic
     semantic_path = "data/models/semantic_output/pytorch_model.bin"
@@ -104,30 +123,45 @@ def generate_voice(text, voice_name):
     silence = np.zeros(int(0.25 * SAMPLE_RATE))
 
     pieces =[]
-    gen_temp = 0.6
-    # print(type(voice_name))
-    # print(voice_name)
+    gen_temp = input_slider_generate_voice_gen_temp
+    min_eos_p = input_slider_generate_voice_min_eos_p
+    gen_temp_semantic2wave = input_slider_generate_voice_gen_temp_semantic2wave
     for sentence in tqdm(sentences, desc="Generating audio"):
         # audio_array = generate_audio(sentence, history_prompt=voice_name, temp=gen_temp, min_eos_p=0.05)
         semantic_tokens = generate_text_semantic(
             text,
             history_prompt=voice_name,
             temp=gen_temp,
-            min_eos_p=0.05,
+            min_eos_p=min_eos_p,
         )
         audio_array = semantic_to_waveform(
             semantic_tokens,
             history_prompt=voice_name,
+            temp=gen_temp,
         )
         pieces+=[audio_array, silence.copy()]
 
     audio_array = np.concatenate(pieces)
+    # Check if the directory exists
+    if not os.path.exists('data/' + voice_name):
+        os.makedirs('data/' + voice_name)
+        print(
+            f"The directory '{voice_name}' has been created successfully.")
+    
     write_wav(f'data/{voice_name}_audio.wav', SAMPLE_RATE, audio_array)
     print("Audio saved successfully.")
     return  f"Audio {voice_name}_audio.wav generated successfully."
 
-# Creating Tabs
+# Sliders
+# Generate voice
+input_slider_generate_voice_gen_temp = gr.inputs.Slider(minimum=0, maximum=1, default=0.7, label="Text Semantic temp", step=0.01)
 
+input_slider_generate_voice_min_eos_p = gr.inputs.Slider(minimum=0, maximum=5, default=0.05, label="Text Semantic min_eos_p", step=0.01)
+
+input_slider_generate_voice_gen_temp_semantic2wave = gr.inputs.Slider(
+    minimum=0, maximum=1, default=0.7, label="Semantic to Waveform generation temperature (1.0 more diverse, 0.0 more conservative)", step=0.01)
+
+# Creating Tabs
 # Generating tokens for voice cloning
 create_voice = gr.Interface(fn=process_audio, inputs=["text","text"],
                      outputs=["text", "text"],
@@ -138,7 +172,8 @@ create_voice = gr.Interface(fn=process_audio, inputs=["text","text"],
 
 # Generating audio from voice prompts using previously generated voice tokens
 generate_audio_ = gr.Interface(fn=generate_voice, 
-                            inputs=["text","text"],
+                               inputs=["text", "text", input_slider_generate_voice_gen_temp,
+                                       input_slider_generate_voice_min_eos_p, input_slider_generate_voice_gen_temp_semantic2wave],
                             outputs="text",
                             live=False,
                             description="Upload a text file and select the name the speaker and then generate audio from it."
@@ -151,4 +186,4 @@ tabbed_layout = gr.TabbedInterface([create_voice, generate_audio_],
 )
 
 # Launching the interface
-tabbed_layout.launch(share=True)
+tabbed_layout.launch()
