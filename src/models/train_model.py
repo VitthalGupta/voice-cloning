@@ -13,7 +13,7 @@ import os
 from tqdm import tqdm
 from scipy.io.wavfile import write as write_wav
 
-parent_dir = '/data'
+parent_dir = './data'
 
 # Create folders if they don't exist
 folder_names = ["external", "processed", "models", "interim", "raw"]
