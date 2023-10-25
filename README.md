@@ -4,9 +4,37 @@
 
 ## Project Description
 
-Sourcing voice from youtube videos and making clones.
+This project involves creating a Gradio interface for voice cloning, leveraging the power of the HuBERT model and Bark for audio and text processing. The project's key components include:
 
-Project Organization
+*Data Preprocessing:* The script begins by setting up the necessary directory structure for storing audio and model data.
+
+*HuBERT Model:* It loads and utilizes the HuBERT model for extracting semantic vectors from audio.
+
+*EnCodec:* The code employs EnCodec to extract discrete codes from audio.
+
+*Voice Prompt Generation:* Voice prompts are generated and saved for later use in voice cloning.
+
+*Audio Generation:* The code then proceeds to generate audio based on the provided text, utilizing the semantic tokens and prompts generated earlier.
+
+*Gradio Interface:* The entire project is wrapped within a Gradio interface that offers two main functionalities - voice cloning and audio generation. Users can upload an audio file to generate voice prompts and later create audio from text input.
+
+*User Controls:* The Gradio interface allows users to control parameters like text semantic temperature, minimum EOS probability, and semantic-to-waveform generation temperature for audio generation.
+
+## Project Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/VitthalGupta/voice-cloning.git
+```
+
+### 2. Install dependencies & Run the script
+
+```bash
+sh run.sh
+```
+
+## Project Organization
 
 ------------
 

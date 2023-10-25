@@ -28,20 +28,22 @@ for folder_name in folder_names:
     except Exception as e:
         print(f"Error creating folder {folder_path}: {str(e)}")
 
-device = 'cpu'  # or 'cuda' if you have a GPU
-model = load_codec_model(use_gpu=True if device == 'cuda' else False)
 
-print('Loading HuBERT model')
-hubert_manager = HuBERTManager()
-hubert_manager.make_sure_hubert_installed()
-hubert_manager.make_sure_tokenizer_installed()
+def process_audio(input_path, voice_name, input_compute_device='mps'):
+    # Device declaration
+    device = input_compute_device
+    model = load_codec_model(use_gpu=False if device == 'cpu' else True)
 
-hubert_model = CustomHubert(
-    checkpoint_path='data/models/hubert/hubert.pt').to(device)
-tokenizer = CustomTokenizer.load_from_checkpoint(
-    'data/models/hubert/tokenizer.pth').to(device)
+    print('Loading HuBERT model')
+    hubert_manager = HuBERTManager()
+    hubert_manager.make_sure_hubert_installed()
+    hubert_manager.make_sure_tokenizer_installed()
 
-def process_audio(input_path, voice_name):
+    hubert_model = CustomHubert(
+        checkpoint_path='data/models/hubert/hubert.pt').to(device)
+    tokenizer = CustomTokenizer.load_from_checkpoint(
+        'data/models/hubert/tokenizer.pth').to(device)
+
     # Load and pre-process the input audio waveform
     print('Loading audio')
     wav, sr = torchaudio.load(input_path)
@@ -83,7 +85,8 @@ def process_audio(input_path, voice_name):
 
 
 def generate_voice(text, voice_name, input_slider_generate_voice_gen_temp, input_slider_generate_voice_min_eos_p, input_slider_generate_voice_gen_temp_semantic2wave):
-    # Local variable declaration
+    
+    # Local variable declaration    
     # set to None if you don't want to use finetuned semantic
     semantic_path = "data/models/semantic_output/pytorch_model.bin"
     # set to None if you don't want to use finetuned coarse
@@ -143,27 +146,30 @@ def generate_voice(text, voice_name, input_slider_generate_voice_gen_temp, input
 
     audio_array = np.concatenate(pieces)
     # Check if the directory exists
-    if not os.path.exists('data/' + voice_name):
-        os.makedirs('data/' + voice_name)
+    if not os.path.exists('data/external/' + voice_name):
+        os.makedirs('data/external/' + voice_name)
         print(
             f"The directory '{voice_name}' has been created successfully.")
     
-    write_wav(f'data/{voice_name}_audio.wav', SAMPLE_RATE, audio_array)
+    write_wav(f'data/external/{voice_name}/{voice_name}_audio.wav', SAMPLE_RATE, audio_array)
     print("Audio saved successfully.")
     return  f"Audio {voice_name}_audio.wav generated successfully."
 
 # Sliders
 # Generate voice
-input_slider_generate_voice_gen_temp = gr.inputs.Slider(minimum=0, maximum=1, default=0.7, label="Text Semantic temp", step=0.01)
+input_slider_generate_voice_gen_temp = gr.inputs.Slider(minimum=0, maximum=1, value=0.7, label="Text Semantic temp", step=0.01)
 
-input_slider_generate_voice_min_eos_p = gr.inputs.Slider(minimum=0, maximum=5, default=0.05, label="Text Semantic min_eos_p", step=0.01)
+input_slider_generate_voice_min_eos_p = gr.inputs.Slider(minimum=0, maximum=5, value=0.05, label="Text Semantic min_eos_p", step=0.01)
 
 input_slider_generate_voice_gen_temp_semantic2wave = gr.inputs.Slider(
-    minimum=0, maximum=1, default=0.7, label="Semantic to Waveform generation temperature (1.0 more diverse, 0.0 more conservative)", step=0.01)
+    minimum=0, maximum=1, value=0.7, label="Semantic to Waveform generation temperature (1.0 more diverse, 0.0 more conservative)", step=0.01)
+
+# Gradio Radio for device selection
+input_compute_device = gr.inputs.Radio(["cpu", "cuda:0", "mps"], value="mps", label="Compute device")
 
 # Creating Tabs
 # Generating tokens for voice cloning
-create_voice = gr.Interface(fn=process_audio, inputs=["text","text"],
+create_voice = gr.Interface(fn=process_audio, inputs=[input_compute_device, "text", "text"],
                      outputs=["text", "text"],
                     capture_session=True,
                     live=False,
@@ -172,7 +178,7 @@ create_voice = gr.Interface(fn=process_audio, inputs=["text","text"],
 
 # Generating audio from voice prompts using previously generated voice tokens
 generate_audio_ = gr.Interface(fn=generate_voice, 
-                               inputs=["text", "text", input_slider_generate_voice_gen_temp,
+                               inputs=["text", "text",input_slider_generate_voice_gen_temp,
                                        input_slider_generate_voice_min_eos_p, input_slider_generate_voice_gen_temp_semantic2wave],
                             outputs="text",
                             live=False,
@@ -186,4 +192,5 @@ tabbed_layout = gr.TabbedInterface([create_voice, generate_audio_],
 )
 
 # Launching the interface
-tabbed_layout.launch()
+if __name__ == "__main__":
+    tabbed_layout.launch()
