@@ -1,6 +1,4 @@
-# voice_cloning
-
-==============================
+# Voice Cloning
 
 ## Project Description
 
