@@ -31,6 +31,9 @@ git clone https://github.com/VitthalGupta/voice-cloning.git
 ```bash
 sh run.sh
 ```
+### 3. Tutorial
+
+[![Thumbnail](assets/thumbnail_voice_cloning.jpg)](https://youtu.be/IbY7bvFo8QU)
 
 ## Project Organization
 
@@ -82,5 +85,11 @@ sh run.sh
     └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
 
 --------
+
+## Contributors
+
+<a href="https://github.com/VitthalGupta/voice-cloning/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=VitthalGupta/voice-cloning" />
+</a>
 
 [END]
