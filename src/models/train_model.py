@@ -157,15 +157,15 @@ def generate_voice(text, voice_name, input_slider_generate_voice_gen_temp, input
 
 # Sliders
 # Generate voice
-input_slider_generate_voice_gen_temp = gr.inputs.Slider(minimum=0, maximum=1, value=0.7, label="Text Semantic temp", step=0.01)
+input_slider_generate_voice_gen_temp = gr.inputs.Slider(minimum=0, maximum=1, label="Text Semantic temp", step=0.01)
 
-input_slider_generate_voice_min_eos_p = gr.inputs.Slider(minimum=0, maximum=5, value=0.05, label="Text Semantic min_eos_p", step=0.01)
+input_slider_generate_voice_min_eos_p = gr.inputs.Slider(minimum=0, maximum=5, label="Text Semantic min_eos_p", step=0.01)
 
 input_slider_generate_voice_gen_temp_semantic2wave = gr.inputs.Slider(
-    minimum=0, maximum=1, value=0.7, label="Semantic to Waveform generation temperature (1.0 more diverse, 0.0 more conservative)", step=0.01)
+    minimum=0, maximum=1, label="Semantic to Waveform generation temperature (1.0 more diverse, 0.0 more conservative)", step=0.01)
 
 # Gradio Radio for device selection
-input_compute_device = gr.inputs.Radio(["cpu", "cuda:0", "mps"], value="mps", label="Compute device")
+input_compute_device = gr.inputs.Radio(["cpu", "cuda:0", "mps"], label="Compute device")
 
 # Creating Tabs
 # Generating tokens for voice cloning
